@@ -1,36 +1,60 @@
-# Pi WhatsApp Setup
+# WhatsApp Setup for Pi Agent
 
-Minimal, public-safe starter repo for connecting [Pi Agent](https://github.com/rusiaaman/pi) to WhatsApp using WhatsApp Web via Baileys.
+A minimal, public-safe WhatsApp Web bridge for running [Pi Agent](https://github.com/earendil-works/pi) from WhatsApp.
 
-This is for personal/local automation. It does not use Meta's official WhatsApp
-Cloud API. It links a WhatsApp account using a QR code, receives messages
-locally, invokes the `pi` CLI, and sends the reply back to WhatsApp.
+This repo shows how to connect Pi Agent to WhatsApp using [Baileys](https://github.com/WhiskeySockets/Baileys), a local Node.js gateway, a QR-linked WhatsApp Web session, and the `pi` CLI. It is intended for personal automation, local agent experiments, and self-hosted AI assistant workflows.
 
-## Important Safety Notes
+Keywords: Pi Agent, WhatsApp, WhatsApp Web, Baileys, local AI agent, self-hosted assistant, chat bridge, personal automation, agent gateway.
 
-- WhatsApp Web automation is unofficial and can be fragile. Use a dedicated
-  assistant number when possible.
+## What This Does
+
+The gateway:
+
+- links a WhatsApp account through WhatsApp Web QR pairing
+- receives WhatsApp text messages locally
+- allowlists the sender before running Pi
+- invokes the `pi` CLI with a defensive prompt wrapper
+- sends Pi's response back to WhatsApp
+- exposes a local health endpoint
+- supports `/status`, `/restart`, and `/resart`
+- includes launchd and systemd templates for auto-restart after reboot
+
+This does not use Meta's official WhatsApp Cloud API. For production business messaging, use the official Cloud API instead.
+
+## Safety Notes
+
+- WhatsApp Web automation is unofficial and can be fragile.
+- Use a dedicated assistant number when possible.
 - Always set `WHATSAPP_ALLOWED_SENDERS`.
-- Never commit `.env`, `session/`, logs, QR files, or secrets.
-- Start in `self-chat` mode only if you understand that messages you send to
-  yourself are treated as Pi input.
+- Never commit `.env`, `session/`, `pairing/`, logs, QR files, or secrets.
+- Treat WhatsApp messages as untrusted input.
+- Start in `self-chat` mode only if you understand that messages you send to yourself are treated as Pi input.
 
-## Quick Start
+The included prompt wrapper tells Pi that WhatsApp text is untrusted and that it must not obey phishing, spoofing, prompt-injection, credential theft, exfiltration, or secret-revealing requests.
 
-Install Pi and make sure a model works:
+## Requirements
+
+- Node.js 20+
+- npm
+- Pi Agent installed and available as `pi`
+- A WhatsApp account that can link a new device
+
+Check Pi first:
 
 ```bash
 pi --version
 pi --offline --list-models
 ```
 
-Install Node dependencies:
+## Quick Start
+
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Configure:
+Create local config:
 
 ```bash
 cp .env.example .env
@@ -44,6 +68,8 @@ WHATSAPP_ALLOWED_SENDERS=15551234567
 WHATSAPP_MODE=self-chat
 ```
 
+Use country code only, with no `+`, spaces, or dashes.
+
 Pair WhatsApp:
 
 ```bash
@@ -51,7 +77,11 @@ npm run pair
 open pairing/latest-qr.html
 ```
 
-Scan the QR from WhatsApp `Linked devices`.
+Scan the QR code from WhatsApp:
+
+```text
+WhatsApp -> Linked devices -> Link a device
+```
 
 Start the gateway:
 
@@ -59,26 +89,61 @@ Start the gateway:
 npm start
 ```
 
-Open the health endpoint:
+Check health:
 
 ```bash
 curl http://127.0.0.1:3091/health
 ```
 
+Expected:
+
+```json
+{"ok":true,"status":"connected"}
+```
+
 Then send a WhatsApp message from the allowed account.
+
+## Configuration
+
+Copy `.env.example` to `.env` and edit these values:
+
+```dotenv
+WHATSAPP_ALLOWED_SENDERS=15551234567
+WHATSAPP_MODE=self-chat
+SELF_CHAT_REPLY_PREFIX=Pi Agent
+
+SESSION_DIR=./session
+HEALTH_HOST=127.0.0.1
+HEALTH_PORT=3091
+
+PI_BIN=pi
+PI_WORKDIR=.
+PI_MODEL=ollama/qwen3.6-35b-a3b-q8:latest
+PI_THINKING=high
+PI_TIMEOUT_MS=900000
+```
+
+Optional:
+
+```dotenv
+PI_APPEND_SYSTEM_PROMPT=/path/to/APPEND_SYSTEM.md
+```
+
+Use that if you keep a local Pi safety, memory, or operating-policy file.
 
 ## Modes
 
 ### self-chat
 
-Use this when the linked WhatsApp account is your own account and you message
-yourself. The bridge accepts your own `fromMe` self-chat messages and ignores
-its own replies using sent-message IDs and `SELF_CHAT_REPLY_PREFIX`.
+Use this when the linked WhatsApp account is your own account and you message yourself.
+
+The bridge accepts your own `fromMe` self-chat messages and ignores its own replies using sent-message IDs and `SELF_CHAT_REPLY_PREFIX`.
 
 ### bot
 
-Use this when you have a separate assistant WhatsApp account. Link that account
-with QR, then message it from your allowed owner number.
+Use this when you have a separate assistant WhatsApp account.
+
+Link the assistant account with QR pairing, then message it from your allowed owner number. In bot mode, `fromMe` messages are ignored.
 
 ## Built-In Commands
 
@@ -86,16 +151,20 @@ The gateway handles these locally before invoking Pi:
 
 ```text
 /status
-/resart
 /restart
+/resart
 ```
 
-`/status` returns the configured model, thinking level, gateway uptime, next
-cron job, used RAM, and free RAM.
+`/status` returns:
 
-`/resart` is intentionally supported as a common typo. `/restart` is also
-supported. Both send an acknowledgement and exit the gateway so launchd,
-systemd, or your process manager can restart it and refresh connections.
+- configured model
+- thinking level
+- gateway uptime
+- next cron job
+- RAM used
+- RAM free
+
+`/resart` is intentionally supported as a common typo. `/restart` and `/resart` both send an acknowledgement and exit the gateway so launchd, systemd, or your process manager can restart it and refresh the WhatsApp connection.
 
 ## Run As A Service
 
@@ -104,7 +173,24 @@ Templates are included:
 - macOS launchd: `launchd/com.example.pi-whatsapp.plist`
 - Linux systemd: `systemd/pi-whatsapp.service`
 
-Edit paths and user names before installing them.
+Edit paths, usernames, and environment details before installing them.
+
+For macOS launchd, the typical flow is:
+
+```bash
+cp launchd/com.example.pi-whatsapp.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.example.pi-whatsapp.plist
+launchctl kickstart -k gui/$(id -u)/com.example.pi-whatsapp
+```
+
+For Linux systemd user services:
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp systemd/pi-whatsapp.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now pi-whatsapp.service
+```
 
 ## Repo Layout
 
@@ -123,7 +209,59 @@ systemd/             Linux service template
 ```bash
 npm run check
 npm test
+npm audit --omit=dev
 ```
+
+## Troubleshooting
+
+If QR pairing succeeds but messages are ignored:
+
+- confirm `WHATSAPP_MODE`
+- confirm `WHATSAPP_ALLOWED_SENDERS`
+- check `curl http://127.0.0.1:3091/health`
+- check whether the linked account is your own account or a separate bot account
+
+If WhatsApp logs out the linked device:
+
+```bash
+rm -rf session
+npm run pair
+open pairing/latest-qr.html
+```
+
+Then restart the gateway.
+
+More notes:
+
+- [Architecture](docs/architecture.md)
+- [Security](docs/security.md)
+- [Troubleshooting](docs/troubleshooting.md)
+
+## Suggested GitHub Description And Topics
+
+Repository description:
+
+```text
+WhatsApp setup for Pi Agent: a local WhatsApp Web/Baileys bridge for running Pi from WhatsApp.
+```
+
+Suggested GitHub topics:
+
+```text
+pi-agent
+whatsapp
+whatsapp-web
+baileys
+ai-agent
+local-ai
+self-hosted
+chatbot
+automation
+agent-gateway
+nodejs
+```
+
+GitHub topics are set in the repository's About panel after the repo is created.
 
 ## Publish Checklist
 
@@ -132,7 +270,13 @@ Before making a GitHub repo public:
 ```bash
 git status --short
 rg -n "token|secret|password|api[_-]?key|session|wa_id|phone|1555|/Users|\.env" .
+npm run check
+npm test
+npm audit --omit=dev
 ```
 
 Review every hit. The included examples are placeholders only.
 
+## License
+
+MIT

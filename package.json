@@ -2,8 +2,22 @@
   "name": "pi-whatsapp-setup",
   "version": "0.1.0",
   "private": true,
-  "description": "Minimal WhatsApp Web/Baileys bridge for running Pi Agent from WhatsApp.",
+  "description": "WhatsApp setup for Pi Agent: a local WhatsApp Web/Baileys bridge for running Pi from WhatsApp.",
   "type": "module",
+  "keywords": [
+    "pi-agent",
+    "whatsapp",
+    "whatsapp-web",
+    "baileys",
+    "ai-agent",
+    "local-ai",
+    "self-hosted",
+    "chatbot",
+    "automation",
+    "agent-gateway",
+    "nodejs"
+  ],
+  "license": "MIT",
   "scripts": {
     "pair": "node src/pair.mjs",
     "start": "node src/gateway.mjs",
@@ -19,4 +33,3 @@
     "node": ">=20"
   }
 }
-
