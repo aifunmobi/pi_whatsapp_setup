@@ -4,7 +4,7 @@ A minimal, public-safe WhatsApp Web bridge for running [Pi Agent](https://github
 
 This repo shows how to connect Pi Agent to WhatsApp using [Baileys](https://github.com/WhiskeySockets/Baileys), a local Node.js gateway, a QR-linked WhatsApp Web session, and the `pi` CLI. It is intended for personal automation, local agent experiments, and self-hosted AI assistant workflows.
 
-Keywords: Pi Agent, WhatsApp, WhatsApp Web, Baileys, local AI agent, self-hosted assistant, chat bridge, personal automation, agent gateway.
+Keywords: Pi Agent, Pi package, WhatsApp, WhatsApp Web, Baileys, local AI agent, self-hosted assistant, chat bridge, personal automation, agent gateway.
 
 ## What This Does
 
@@ -45,6 +45,22 @@ Check Pi first:
 pi --version
 pi --offline --list-models
 ```
+
+## Install As A Pi Package
+
+From GitHub:
+
+```bash
+pi install https://github.com/aifunmobi/pi_whatsapp_setup
+```
+
+After the npm package is published:
+
+```bash
+pi install npm:pi-whatsapp-setup
+```
+
+This loads the included `whatsapp-setup` skill into Pi. The gateway itself is still configured and run locally from this repo or from the npm package files.
 
 ## Quick Start
 
@@ -199,6 +215,7 @@ src/gateway.mjs      WhatsApp Web listener and Pi runner
 src/pair.mjs         QR pairing helper that writes HTML/PNG
 src/lib.mjs          Pure helpers and status formatting
 test/lib.test.mjs    Unit tests for helpers
+skills/              Pi package skill loaded by pi install
 docs/                Architecture, security, troubleshooting
 launchd/             macOS service template
 systemd/             Linux service template
@@ -249,6 +266,7 @@ Suggested GitHub topics:
 
 ```text
 pi-agent
+pi-package
 whatsapp
 whatsapp-web
 baileys
@@ -273,9 +291,19 @@ rg -n "token|secret|password|api[_-]?key|session|wa_id|phone|1555|/Users|\.env" 
 npm run check
 npm test
 npm audit --omit=dev
+npm pack --dry-run
 ```
 
 Review every hit. The included examples are placeholders only.
+
+To publish to npm:
+
+```bash
+npm login
+npm publish --access public
+```
+
+The package is prepared for pi.dev discovery with the `pi-package` keyword and a `pi.skills` manifest in `package.json`.
 
 ## License
 

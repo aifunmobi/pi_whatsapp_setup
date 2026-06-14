@@ -1,10 +1,11 @@
 {
   "name": "pi-whatsapp-setup",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "description": "WhatsApp setup for Pi Agent: a local WhatsApp Web/Baileys bridge for running Pi from WhatsApp.",
   "type": "module",
   "keywords": [
+    "pi-package",
     "pi-agent",
     "whatsapp",
     "whatsapp-web",
@@ -18,6 +19,30 @@
     "nodejs"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aifunmobi/pi_whatsapp_setup.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aifunmobi/pi_whatsapp_setup/issues"
+  },
+  "homepage": "https://github.com/aifunmobi/pi_whatsapp_setup#readme",
+  "files": [
+    ".env.example",
+    "docs/",
+    "launchd/",
+    "skills/",
+    "src/",
+    "systemd/",
+    "test/",
+    "LICENSE",
+    "README.md"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
+  },
   "scripts": {
     "pair": "node src/pair.mjs",
     "start": "node src/gateway.mjs",
