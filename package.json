@@ -1,0 +1,22 @@
+{
+  "name": "pi-whatsapp-setup",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal WhatsApp Web/Baileys bridge for running Pi Agent from WhatsApp.",
+  "type": "module",
+  "scripts": {
+    "pair": "node src/pair.mjs",
+    "start": "node src/gateway.mjs",
+    "check": "node --check src/lib.mjs && node --check src/gateway.mjs && node --check src/pair.mjs && node --check test/lib.test.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "github:WhiskeySockets/Baileys",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
+

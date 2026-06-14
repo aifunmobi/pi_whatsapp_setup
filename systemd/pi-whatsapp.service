@@ -1,0 +1,16 @@
+[Unit]
+Description=Pi WhatsApp Gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pi_whatsapp_setup
+ExecStart=/usr/bin/node /opt/pi_whatsapp_setup/src/gateway.mjs
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=default.target
+

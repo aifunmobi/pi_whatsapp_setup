@@ -1,0 +1,8 @@
+.env
+node_modules/
+npm-debug.log*
+session/
+pairing/
+logs/
+.DS_Store
+
